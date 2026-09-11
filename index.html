@@ -467,8 +467,11 @@ const PRACTICAL_POOL = QUESTIONS.filter(q=>q.category!==REG_KEY);
    STORAGE
    ============================================================ */
 const LS = {
-  wrong: "pins_wrong_v1",
-  fav: "pins_fav_v1",
+  // wrong/fav bumped to v2: the 20260512 question-bank update reassigned
+  // every question's numeric id, so old saved ids would point at the
+  // wrong question rather than the one the user actually flagged
+  wrong: "pins_wrong_v2",
+  fav: "pins_fav_v2",
   progress: "pins_progress_v1",
   records: "pins_records_v1",
   theme: "pins_theme_v1",
