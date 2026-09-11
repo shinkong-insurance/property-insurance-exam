@@ -1,0 +1,10 @@
+.DS_Store
+
+# vendor exam-bank source PDFs: copyrighted content, not meant to be
+# published — see tools/README.md for how to regenerate index.html from
+# a fresh PDF edition
+*.pdf
+
+# scratch extraction output; tools/data/questions.json is the committed
+# source of truth
+/tools/out/
