@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>產險考照練功房</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23c07a2c'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='white' font-family='sans-serif'%3E%E7%94%A2%3C/text%3E%3C/svg%3E">
 <meta name="description" content="財產保險業務員資格測驗練習網頁：分類練習、全真模擬考、錯題本、收藏與學習進度，離線於瀏覽器本機運作。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -189,6 +190,7 @@ main{padding-top:20px;}
   display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;
 }
 .feature-card{
+  text-decoration:none;
   background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-card);
   padding:18px;text-align:left;box-shadow:var(--shadow);
   display:flex;flex-direction:column;gap:10px;transition:transform .15s ease, border-color .15s ease;
@@ -642,8 +644,8 @@ function viewHome(){
     <a class="feature-card" href="#/practice">
       <div class="icon-wrap">${icon("book")}</div>
       <h3>分類練習</h3>
-      <p>依九大考科分類練習，隨時中斷、隨時再戰。</p>
-      <div class="meta">9 個分類</div>
+      <p>依八大類分類練習，隨時中斷、隨時再戰。</p>
+      <div class="meta">${CATS.length} 個分類</div>
     </a>
     <a class="feature-card" href="#/exam">
       <div class="icon-wrap">${icon("clock")}</div>
