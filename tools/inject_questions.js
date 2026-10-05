@@ -1,39 +1,65 @@
 #!/usr/bin/env node
 /**
- * Obfuscate tools/data/questions.json the same way index.html's
- * deobfuscate() expects (XOR against the "PinsSecure2026!" key, then
- * base64) and splice it into index.html's `const QUESTIONS = ...` line.
+ * Build the data blocks embedded in index.html:
  *
- * This is a lightweight copy deterrent only (see index.html's own
- * comment above the anti-copy code) — not real access control. The key
- * is intentionally kept in sync between here and index.html; if you
- * change one, change both.
+ *   const QUESTIONS = JSON.parse(deobfuscate("..."));   <- questions.json + enrich.json
+ *   const LEARN = JSON.parse(deobfuscate("..."));       <- learn.json  (講義章節)
+ *   const CARDS = JSON.parse(deobfuscate("..."));       <- cards.json  (數字速記卡)
  *
- * Usage:
- *   node tools/inject_questions.js [questions.json] [index.html]
- * Defaults: tools/data/questions.json, index.html
+ * enrich.json ({ "<id>": { sec, exp, ex } }) holds our own explanations and
+ * worked examples; it is merged onto the official question bank here so that
+ * questions.json can stay a faithful copy of the 公會 PDF and be regenerated
+ * by build_questions.py without losing the enrichment.
+ *
+ * Obfuscation = XOR against "PinsSecure2026!" then base64 (a light copy
+ * deterrent only — see index.html). Keep the key in sync with index.html.
+ *
+ * Usage: node tools/inject_questions.js [index.html]
  */
 const fs = require("fs");
 const path = require("path");
 
-const questionsPath = process.argv[2] || path.join(__dirname, "data", "questions.json");
-const indexPath = process.argv[3] || path.join(__dirname, "..", "index.html");
+const DATA = path.join(__dirname, "data");
+const indexPath = process.argv[2] || path.join(__dirname, "..", "index.html");
 const KEY = "PinsSecure2026!";
 
-const questions = JSON.parse(fs.readFileSync(questionsPath, "utf8"));
-const jsonStr = JSON.stringify(questions);
-const bytes = Buffer.from(jsonStr, "utf8");
-const out = Buffer.alloc(bytes.length);
-for (let i = 0; i < bytes.length; i++) out[i] = bytes[i] ^ KEY.charCodeAt(i % KEY.length);
-const b64 = out.toString("base64");
+function readJSON(name, fallback) {
+  const p = path.join(DATA, name);
+  return fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, "utf8")) : fallback;
+}
+function obfuscate(obj) {
+  const bytes = Buffer.from(JSON.stringify(obj), "utf8");
+  const out = Buffer.alloc(bytes.length);
+  for (let i = 0; i < bytes.length; i++) out[i] = bytes[i] ^ KEY.charCodeAt(i % KEY.length);
+  return out.toString("base64");
+}
+
+const questions = readJSON("questions.json");
+const enrich = readJSON("enrich.json", {});
+let merged = 0;
+for (const q of questions) {
+  const e = enrich[String(q.id)];
+  if (!e) continue;
+  if (e.sec) q.sec = e.sec;
+  if (e.exp) q.explanation = e.exp;
+  if (e.ex) q.example = e.ex;
+  merged++;
+}
+const learn = readJSON("learn.json", []);
+const cards = readJSON("cards.json", []);
 
 let html = fs.readFileSync(indexPath, "utf8");
-const re = /const QUESTIONS = JSON\.parse\(deobfuscate\("([^"]+)"\)\);/;
-if (!re.test(html)) {
-  console.error(`could not find "const QUESTIONS = JSON.parse(deobfuscate(...))" in ${indexPath}`);
-  process.exit(1);
+function splice(name, obj) {
+  const re = new RegExp(`const ${name} = JSON\\.parse\\(deobfuscate\\("([^"]*)"\\)\\);`);
+  if (!re.test(html)) {
+    console.error(`could not find "const ${name} = JSON.parse(deobfuscate(...))" in ${indexPath}`);
+    process.exit(1);
+  }
+  html = html.replace(re, () => `const ${name} = JSON.parse(deobfuscate("${obfuscate(obj)}"));`);
 }
-html = html.replace(re, `const QUESTIONS = JSON.parse(deobfuscate("${b64}"));`);
+splice("QUESTIONS", questions);
+splice("LEARN", learn);
+splice("CARDS", cards);
 fs.writeFileSync(indexPath, html);
 
-console.log(`injected ${questions.length} questions into ${indexPath} (${b64.length} b64 chars)`);
+console.log(`injected ${questions.length} questions (${merged} enriched), ${learn.length} chapters, ${cards.length} cards into ${indexPath}`);

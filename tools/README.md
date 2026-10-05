@@ -73,3 +73,30 @@
   事件係指」開頭少了「危險因素」四個字）：已用 PyMuPDF 讀到字元座標
   層級確認這是原廠 PDF 文字層本身就缺漏，不是解析程式的問題，未特別
   修正。
+
+## 講義學習、速記卡與題目解析加強
+
+網站另外內嵌三份資料，全部在 `inject_questions.js` 執行時一起混淆注入 `index.html`：
+
+| 檔案 | 來源 | 用途 |
+|---|---|---|
+| `tools/handout/*.md` | 講義原稿（Markdown，可直接編修） | 講義學習頁 `#/learn` |
+| `tools/data/learn.json` | `build_handout.py` 由講義產生（章 `c1`…`c9`、節 `c{n}s{m}`） | 章節內容與「練習本節題目」 |
+| `tools/data/cards.json` | `build_handout.py` 由 `10_appendix.md` 的表格產生 | 數字速記卡 `#/cards` |
+| `tools/data/enrich.json` | 人工撰寫 `{id: {sec, exp, ex}}` | 每題對應講義小節、白話解析、實務舉例／試算 |
+
+`questions.json` 保持公會題庫原文；`enrich.json` 只在注入時覆蓋：
+`sec` → 題目對應講義小節（題目卡下方「回講義複習」）、`exp` → 取代原解析、
+`ex` → 「實務舉例／試算」區塊（換行用 `\n`）。
+
+更新流程：
+
+```bash
+# 1. 修改講義 tools/handout/*.md 後重建講義資料
+python3 tools/build_handout.py        # 需要 pandoc
+# 2. 注入題庫 + 講義 + 速記卡
+node tools/inject_questions.js
+```
+
+題庫換版（題目 id 改變）時，`enrich.json` 的 id 對應必須重新核對；
+`build_handout.py` 若改動章節標題順序，節 id 會跟著變，`enrich.json` 的 `sec` 也要同步更新。
