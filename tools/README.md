@@ -100,3 +100,8 @@ node tools/inject_questions.js
 
 題庫換版（題目 id 改變）時，`enrich.json` 的 id 對應必須重新核對；
 `build_handout.py` 若改動章節標題順序，節 id 會跟著變，`enrich.json` 的 `sec` 也要同步更新。
+
+### 依現行法規修正的題目（corrections.json）
+
+`tools/data/corrections.json`（`{id: {stem?, options?, answer?}}`）收錄公會題庫中答案已不符現行法規的題目，
+注入時覆蓋題幹、選項或答案；對應的解析寫在 `enrich.json`。題庫換版時請逐題確認是否仍需修正。

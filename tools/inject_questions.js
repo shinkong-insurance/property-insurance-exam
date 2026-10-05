@@ -36,6 +36,18 @@ function obfuscate(obj) {
 
 const questions = readJSON("questions.json");
 const enrich = readJSON("enrich.json", {});
+// corrections.json ({ "<id>": { stem?, options?, answer? } }) updates bank
+// questions whose official answer no longer matches current law.
+const corrections = readJSON("corrections.json", {});
+let corrected = 0;
+for (const q of questions) {
+  const c = corrections[String(q.id)];
+  if (!c) continue;
+  if (c.stem) q.stem = c.stem;
+  if (c.options) q.options = c.options;
+  if (c.answer) q.answer = c.answer;
+  corrected++;
+}
 let merged = 0;
 for (const q of questions) {
   const e = enrich[String(q.id)];
@@ -62,4 +74,4 @@ splice("LEARN", learn);
 splice("CARDS", cards);
 fs.writeFileSync(indexPath, html);
 
-console.log(`injected ${questions.length} questions (${merged} enriched), ${learn.length} chapters, ${cards.length} cards into ${indexPath}`);
+console.log(`injected ${questions.length} questions (${merged} enriched, ${corrected} corrected), ${learn.length} chapters, ${cards.length} cards into ${indexPath}`);
