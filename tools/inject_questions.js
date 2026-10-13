@@ -5,6 +5,7 @@
  *   const QUESTIONS = JSON.parse(deobfuscate("..."));   <- questions.json + enrich.json
  *   const LEARN = JSON.parse(deobfuscate("..."));       <- learn.json  (講義章節)
  *   const CARDS = JSON.parse(deobfuscate("..."));       <- cards.json  (數字速記卡)
+ *   const FEATURED = JSON.parse(deobfuscate("..."));    <- featured.json (產險公司章節精選題)
  *
  * enrich.json ({ "<id>": { sec, exp, ex } }) holds our own explanations and
  * worked examples; it is merged onto the official question bank here so that
@@ -57,6 +58,15 @@ for (const q of questions) {
   if (e.ex) q.example = e.ex;
   merged++;
 }
+// featured.json: 產險公司提供的章節精選題（皆為題庫既有題目，只標記 id，不新增題目）
+const featured = readJSON("featured.json", { sets: [] });
+const byId = new Map(questions.map(q => [q.id, q]));
+let featCount = 0;
+for (const set of featured.sets) {
+  set.ids = set.ids.filter(id => byId.has(id));
+  for (const id of set.ids) { byId.get(id).feat = set.key; featCount++; }
+  delete set.excluded; delete set.total_in_file;
+}
 const learn = readJSON("learn.json", []);
 const cards = readJSON("cards.json", []);
 
@@ -72,6 +82,7 @@ function splice(name, obj) {
 splice("QUESTIONS", questions);
 splice("LEARN", learn);
 splice("CARDS", cards);
+splice("FEATURED", featured);
 fs.writeFileSync(indexPath, html);
 
-console.log(`injected ${questions.length} questions (${merged} enriched, ${corrected} corrected), ${learn.length} chapters, ${cards.length} cards into ${indexPath}`);
+console.log(`injected ${questions.length} questions (${merged} enriched, ${corrected} corrected), ${featCount} featured in ${featured.sets.length} sets, ${learn.length} chapters, ${cards.length} cards into ${indexPath}`);

@@ -105,3 +105,15 @@ node tools/inject_questions.js
 
 `tools/data/corrections.json`（`{id: {stem?, options?, answer?}}`）收錄公會題庫中答案已不符現行法規的題目，
 注入時覆蓋題幹、選項或答案；對應的解析寫在 `enrich.json`。題庫換版時請逐題確認是否仍需修正。
+
+### 產險公司章節精選題（featured.json）
+
+`tools/data/featured.json` 收錄產險公司依章節提供的 9 卷精選題（115 年 10 月版）。
+這批題目與公會 20260512 版題庫逐字相同，因此**不新增題目、不改 id**，只記錄題庫 id：
+注入時在題目加上 `feat`（卷代號 f1…f9），網站據此提供：
+
+- 首頁「章節精選題」→ `#/featured`：9 卷整卷練習（`#/practice-feat/f3`）
+- 講義各小節「★ 本節精選題」（`#/practice-sec-feat/c7s3`）、各章頂端整卷練習入口
+- 題目卡標籤顯示「★ 精選」；模擬考題池不受影響
+
+比對方式與審查結果見 `tools/REVIEW_featured_11510.md`。產險公司若改版，重新比對 id 後覆寫 `ids` 即可。
