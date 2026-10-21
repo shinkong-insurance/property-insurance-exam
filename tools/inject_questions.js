@@ -35,10 +35,10 @@ function obfuscate(obj) {
   return out.toString("base64");
 }
 
-const questions = readJSON("questions.json");
+let questions = readJSON("questions.json");
 const enrich = readJSON("enrich.json", {});
-// corrections.json ({ "<id>": { stem?, options?, answer? } }) updates bank
-// questions whose official answer no longer matches current law.
+// corrections.json ({ "<id>": { stem?, options?, answer?, delete? } }): fixes from
+// the 公會 勘誤表 (115.6 v3). Law changes the bank has NOT adopted go in current_law.json.
 const corrections = readJSON("corrections.json", {});
 let corrected = 0;
 for (const q of questions) {
@@ -48,6 +48,18 @@ for (const q of questions) {
   if (c.options) q.options = c.options;
   if (c.answer) q.answer = c.answer;
   corrected++;
+}
+// { "delete": true } = question removed by the 公會 勘誤表 (ids of the others stay unchanged)
+const deleted = questions.filter(q => (corrections[String(q.id)] || {}).delete).length;
+questions = questions.filter(q => !(corrections[String(q.id)] || {}).delete);
+// current_law.json ({ "<id>": { note } }): questions whose 題庫 answer differs
+// from current law. The question and answer stay as in the 公會 bank (that is
+// what the exam grades); the current rule is shown as a separate note.
+const currentLaw = readJSON("current_law.json", {});
+let noted = 0;
+for (const q of questions) {
+  const n = currentLaw[String(q.id)];
+  if (n && n.note) { q.note = n.note; noted++; }
 }
 let merged = 0;
 for (const q of questions) {
@@ -85,4 +97,4 @@ splice("CARDS", cards);
 splice("FEATURED", featured);
 fs.writeFileSync(indexPath, html);
 
-console.log(`injected ${questions.length} questions (${merged} enriched, ${corrected} corrected), ${featCount} featured in ${featured.sets.length} sets, ${learn.length} chapters, ${cards.length} cards into ${indexPath}`);
+console.log(`injected ${questions.length} questions (${merged} enriched, ${corrected} corrected, ${deleted} deleted, ${noted} with current-law notes), ${featCount} featured in ${featured.sets.length} sets, ${learn.length} chapters, ${cards.length} cards into ${indexPath}`);

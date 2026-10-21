@@ -101,10 +101,12 @@ node tools/inject_questions.js
 題庫換版（題目 id 改變）時，`enrich.json` 的 id 對應必須重新核對；
 `build_handout.py` 若改動章節標題順序，節 id 會跟著變，`enrich.json` 的 `sec` 也要同步更新。
 
-### 依現行法規修正的題目（corrections.json）
+### 勘誤（corrections.json）與現行規定註記（current_law.json）
 
-`tools/data/corrections.json`（`{id: {stem?, options?, answer?}}`）收錄公會題庫中答案已不符現行法規的題目，
-注入時覆蓋題幹、選項或答案；對應的解析寫在 `enrich.json`。題庫換版時請逐題確認是否仍需修正。
+- `tools/data/corrections.json`（`{id: {stem?, options?, answer?, delete?}}`）：公會勘誤表（目前 115.6 v3）的修正。`delete: true` 為勘誤表刪除的題目（注入時移除，其他題 id 不變；網站載入時會清掉使用者錯題本／收藏裡已刪除的 id）。
+- `tools/data/current_law.json`（`{id: {note}}`）：題庫答案與現行法規不同的題目。**題目、選項、答案一律保留公會原文**（考試依題庫答案評分），
+  注入時加上 `note`，題目卡顯示「⚠ 法規已修正」標籤與「現行規定（考試仍依題庫答案作答）」說明框；`enrich.json` 的 `exp` 解釋考試答案的依據。
+- 題庫換版時：若公會已把答案改成新規定，就從 `current_law.json` 移除該題並改寫 `exp`。
 
 ### 產險公司章節精選題（featured.json）
 
